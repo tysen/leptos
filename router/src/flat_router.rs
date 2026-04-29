@@ -490,7 +490,8 @@ impl RenderHtml for MatchedRoute {
     }
 
     fn materialize(self) -> Self::Materialized {
-        self
+        let MatchedRoute(id, view) = self;
+        MatchedRoute(id, view.materialize())
     }
 }
 

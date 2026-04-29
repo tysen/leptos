@@ -67,6 +67,14 @@ pub struct AnyView {
     resolve: fn(Erased) -> Pin<Box<dyn Future<Output = AnyView> + Send>>,
     #[cfg(feature = "ssr")]
     dry_resolve: fn(&mut Erased),
+    // Eagerly invokes any reactive-function wrapper inside the erased value
+    // (so the inner closure runs exactly once before any subsequent
+    // `dry_resolve`/`resolve`/`to_html_async_with_buf` pair). For non-reactive
+    // inner types this is the identity. Required to fix
+    // `SerializedDataId` drift when a reactive closure sits inside an
+    // `AnyView` that gets `dry_resolve`d and `resolve`d separately.
+    #[cfg(feature = "ssr")]
+    materialize: fn(Erased) -> AnyView,
     #[cfg(feature = "hydrate")]
     #[allow(clippy::type_complexity)]
     hydrate_from_server: fn(Erased, &Cursor, &PositionState) -> AnyViewState,
@@ -277,6 +285,11 @@ where
             }
         }
 
+        #[cfg(feature = "ssr")]
+        fn materialize<T: RenderHtml + 'static>(value: Erased) -> AnyView {
+            value.into_inner::<T>().materialize().into_any()
+        }
+
         fn build<T: RenderHtml + 'static>(value: Erased) -> AnyViewState {
             let state = ErasedLocal::new(value.into_inner::<T>().build());
             let placeholder = (!T::EXISTS).then(Rndr::create_placeholder);
@@ -359,6 +372,8 @@ where
             resolve: resolve::<T::Owned>,
             #[cfg(feature = "ssr")]
             dry_resolve: dry_resolve::<T::Owned>,
+            #[cfg(feature = "ssr")]
+            materialize: materialize::<T::Owned>,
             #[cfg(feature = "ssr")]
             html_len: value.html_len(),
             #[cfg(feature = "ssr")]
@@ -633,7 +648,14 @@ impl RenderHtml for AnyView {
     }
 
     fn materialize(self) -> Self::Materialized {
-        self
+        #[cfg(feature = "ssr")]
+        {
+            (self.materialize)(self.value)
+        }
+        #[cfg(not(feature = "ssr"))]
+        {
+            self
+        }
     }
 }
 
@@ -817,7 +839,10 @@ impl RenderHtml for AnyViewWithAttrs {
     }
 
     fn materialize(self) -> Self::Materialized {
-        self
+        AnyViewWithAttrs {
+            view: self.view.materialize(),
+            attrs: self.attrs,
+        }
     }
 }
 
