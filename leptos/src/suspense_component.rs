@@ -282,6 +282,7 @@ where
     // itself
     type AsyncOutput = Self;
     type Owned = Self;
+    type Materialized = Self;
 
     const MIN_LENGTH: usize = Chil::MIN_LENGTH;
 
@@ -345,9 +346,20 @@ where
             futures::channel::oneshot::channel::<()>();
         provide_context(LocalResourceNotifier::from(local_tx));
 
+        // Materialize children first: if `self.children` is a reactive closure
+        // (the typical `{move || Suspend::new(...)}` pattern inside a
+        // `<Suspense>`), this invokes the closure exactly once. Without this
+        // step, `dry_resolve` and the later `resolve` call would each invoke
+        // the closure separately on the server, producing two distinct
+        // `Suspend` instances with their own freshly-allocated
+        // `SerializedDataId`s — which then disagree with the client's
+        // single-pass hydration ids and break the
+        // `__INCOMPLETE_CHUNKS`/`get_incomplete_chunk` lookup. For
+        // non-reactive children, `materialize` is the identity.
+        let mut children = self.children.materialize();
         // walk over the tree of children once to make sure that all resource loads are registered
-        self.children.dry_resolve();
-        let children = Arc::new(Mutex::new(Some(self.children)));
+        children.dry_resolve();
+        let children = Arc::new(Mutex::new(Some(children)));
 
         // check the set of tasks to see if it is empty, now or later
         let eff = reactive_graph::effect::Effect::new_isomorphic({
@@ -577,6 +589,10 @@ where
     fn into_owned(self) -> Self::Owned {
         self
     }
+
+    fn materialize(self) -> Self::Materialized {
+        self
+    }
 }
 
 /// A wrapper that prevents [`Suspense`] from waiting for any resource reads that happen inside
@@ -630,6 +646,7 @@ where
 {
     type AsyncOutput = Self;
     type Owned = Self;
+    type Materialized = Self;
 
     const MIN_LENGTH: usize = T::MIN_LENGTH;
 
@@ -684,6 +701,10 @@ where
     }
 
     fn into_owned(self) -> Self::Owned {
+        self
+    }
+
+    fn materialize(self) -> Self::Materialized {
         self
     }
 }

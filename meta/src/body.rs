@@ -104,6 +104,7 @@ where
 {
     type AsyncOutput = BodyView<At::AsyncOutput>;
     type Owned = BodyView<At::CloneableOwned>;
+    type Materialized = BodyView<At::CloneableOwned>;
 
     const MIN_LENGTH: usize = At::MIN_LENGTH;
 
@@ -149,6 +150,12 @@ where
     }
 
     fn into_owned(self) -> Self::Owned {
+        BodyView {
+            attributes: self.attributes.into_cloneable_owned(),
+        }
+    }
+
+    fn materialize(self) -> Self::Materialized {
         BodyView {
             attributes: self.attributes.into_cloneable_owned(),
         }

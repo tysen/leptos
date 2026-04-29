@@ -40,6 +40,7 @@ impl<'a> Render for &'a str {
 impl RenderHtml for &str {
     type AsyncOutput = Self;
     type Owned = String;
+    type Materialized = String;
 
     const MIN_LENGTH: usize = 0;
 
@@ -107,6 +108,10 @@ impl RenderHtml for &str {
     }
 
     fn into_owned(self) -> Self::Owned {
+        self.to_string()
+    }
+
+    fn materialize(self) -> Self::Materialized {
         self.to_string()
     }
 }
@@ -178,6 +183,7 @@ impl RenderHtml for String {
     const MIN_LENGTH: usize = 0;
     type AsyncOutput = Self;
     type Owned = Self;
+    type Materialized = Self;
 
     fn dry_resolve(&mut self) {}
 
@@ -218,6 +224,10 @@ impl RenderHtml for String {
     }
 
     fn into_owned(self) -> Self::Owned {
+        self
+    }
+
+    fn materialize(self) -> Self::Materialized {
         self
     }
 }
@@ -382,6 +392,7 @@ impl Render for Arc<str> {
 impl RenderHtml for Arc<str> {
     type AsyncOutput = Self;
     type Owned = Self;
+    type Materialized = Self;
 
     const MIN_LENGTH: usize = 0;
 
@@ -425,6 +436,10 @@ impl RenderHtml for Arc<str> {
     }
 
     fn into_owned(self) -> Self::Owned {
+        self
+    }
+
+    fn materialize(self) -> Self::Materialized {
         self
     }
 }
@@ -493,6 +508,7 @@ impl<'a> Render for Cow<'a, str> {
 impl RenderHtml for Cow<'_, str> {
     type AsyncOutput = Self;
     type Owned = String;
+    type Materialized = String;
 
     const MIN_LENGTH: usize = 0;
 
@@ -536,6 +552,10 @@ impl RenderHtml for Cow<'_, str> {
     }
 
     fn into_owned(self) -> <Self as RenderHtml>::Owned {
+        self.into_owned()
+    }
+
+    fn materialize(self) -> <Self as RenderHtml>::Materialized {
         self.into_owned()
     }
 }

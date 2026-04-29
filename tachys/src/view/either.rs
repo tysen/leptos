@@ -283,6 +283,7 @@ where
 {
     type AsyncOutput = Either<A::AsyncOutput, B::AsyncOutput>;
     type Owned = Either<A::Owned, B::Owned>;
+    type Materialized = Either<A::Materialized, B::Materialized>;
 
     fn dry_resolve(&mut self) {
         match self {
@@ -442,6 +443,13 @@ where
             Either::Right(right) => Either::Right(right.into_owned()),
         }
     }
+
+    fn materialize(self) -> Self::Materialized {
+        match self {
+            Either::Left(left) => Either::Left(left.materialize()),
+            Either::Right(right) => Either::Right(right.materialize()),
+        }
+    }
 }
 
 /// Stores each value in the view state, overwriting it only if `Some(_)` is provided.
@@ -547,6 +555,7 @@ where
 {
     type AsyncOutput = EitherKeepAlive<A::AsyncOutput, B::AsyncOutput>;
     type Owned = EitherKeepAlive<A::Owned, B::Owned>;
+    type Materialized = EitherKeepAlive<A::Materialized, B::Materialized>;
 
     const MIN_LENGTH: usize = 0;
 
@@ -699,6 +708,14 @@ where
         EitherKeepAlive {
             a: self.a.map(|a| a.into_owned()),
             b: self.b.map(|b| b.into_owned()),
+            show_b: self.show_b,
+        }
+    }
+
+    fn materialize(self) -> Self::Materialized {
+        EitherKeepAlive {
+            a: self.a.map(|a| a.materialize()),
+            b: self.b.map(|b| b.materialize()),
             show_b: self.show_b,
         }
     }
@@ -879,6 +896,7 @@ macro_rules! tuples {
             {
                 type AsyncOutput = [<EitherOf $num>]<$($ty::AsyncOutput,)*>;
                 type Owned = [<EitherOf $num>]<$($ty::Owned,)*>;
+                type Materialized = [<EitherOf $num>]<$($ty::Materialized,)*>;
 
                 const MIN_LENGTH: usize = max_usize(&[$($ty ::MIN_LENGTH,)*]);
 
@@ -986,6 +1004,14 @@ macro_rules! tuples {
                     match self {
                         $([<EitherOf $num>]::$ty(this) => {
                             [<EitherOf $num>]::$ty(this.into_owned())
+                        })*
+                    }
+                }
+
+                fn materialize(self) -> Self::Materialized {
+                    match self {
+                        $([<EitherOf $num>]::$ty(this) => {
+                            [<EitherOf $num>]::$ty(this.materialize())
                         })*
                     }
                 }

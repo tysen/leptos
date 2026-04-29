@@ -108,6 +108,16 @@ where
     /// An equivalent value that is `'static`.
     type Owned: RenderHtml + 'static;
 
+    /// A view-tree value with any reactive function wrappers already invoked,
+    /// so that subsequent `dry_resolve`, `resolve`, and `to_html_async_with_buf`
+    /// calls all operate on the same view-tree instance — preserving id
+    /// allocations and any internal caching (notably `Suspend::dry_resolve`'s
+    /// `now_or_never` cache).
+    ///
+    /// For non-reactive views, this is typically `Self` (or `Self::Owned`
+    /// for non-`'static` views).
+    type Materialized: RenderHtml + 'static;
+
     /// The minimum length of HTML created when this view is rendered.
     const MIN_LENGTH: usize;
 
@@ -323,6 +333,15 @@ where
 
     /// Convert into the equivalent value that is `'static`.
     fn into_owned(self) -> Self::Owned;
+
+    /// Eagerly invokes any reactive-function wrapper layer, so that the
+    /// returned view tree is stable across multiple `dry_resolve` / `resolve`
+    /// / `to_html_async_with_buf` calls. For non-reactive views this is the
+    /// identity; for closures (`F: ReactiveFunction`) this calls the closure
+    /// exactly once and returns its inner view.
+    fn materialize(self) -> Self::Materialized
+    where
+        Self: Sized;
 }
 
 /// Allows a type to be mounted to the DOM.

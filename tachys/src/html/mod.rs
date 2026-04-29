@@ -70,6 +70,7 @@ no_attrs!(Doctype);
 impl RenderHtml for Doctype {
     type AsyncOutput = Self;
     type Owned = Self;
+    type Materialized = Self;
 
     const MIN_LENGTH: usize = "<!DOCTYPE html>".len();
 
@@ -100,6 +101,10 @@ impl RenderHtml for Doctype {
     }
 
     fn into_owned(self) -> Self::Owned {
+        self
+    }
+
+    fn materialize(self) -> Self::Materialized {
         self
     }
 }
@@ -177,6 +182,7 @@ impl AddAnyAttr for InertElement {
 impl RenderHtml for InertElement {
     type AsyncOutput = Self;
     type Owned = Self;
+    type Materialized = Self;
 
     const MIN_LENGTH: usize = 0;
 
@@ -220,6 +226,10 @@ impl RenderHtml for InertElement {
     }
 
     fn into_owned(self) -> Self::Owned {
+        self
+    }
+
+    fn materialize(self) -> Self::Materialized {
         self
     }
 }

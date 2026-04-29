@@ -71,6 +71,7 @@ macro_rules! render_primitive {
 			{
 				type AsyncOutput = Self;
 				type Owned = Self;
+				type Materialized = Self;
 
 				const MIN_LENGTH: usize = 0;
 
@@ -118,6 +119,10 @@ macro_rules! render_primitive {
 				}
 
 				fn into_owned(self) -> Self::Owned {
+					self
+				}
+
+				fn materialize(self) -> Self::Materialized {
 					self
 				}
 			}

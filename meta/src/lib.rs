@@ -411,6 +411,8 @@ where
 {
     type AsyncOutput = Self;
     type Owned = RegisteredMetaTag<E, At::CloneableOwned, Ch::Owned>;
+    type Materialized =
+        RegisteredMetaTag<E, At::CloneableOwned, Ch::Materialized>;
 
     const MIN_LENGTH: usize = 0;
     const EXISTS: bool = false;
@@ -477,6 +479,12 @@ where
     fn into_owned(self) -> Self::Owned {
         RegisteredMetaTag {
             el: self.el.into_owned(),
+        }
+    }
+
+    fn materialize(self) -> Self::Materialized {
+        RegisteredMetaTag {
+            el: self.el.materialize(),
         }
     }
 }
@@ -557,6 +565,7 @@ impl AddAnyAttr for MetaTagsView {
 impl RenderHtml for MetaTagsView {
     type AsyncOutput = Self;
     type Owned = Self;
+    type Materialized = Self;
 
     const MIN_LENGTH: usize = 0;
 
@@ -585,6 +594,10 @@ impl RenderHtml for MetaTagsView {
     }
 
     fn into_owned(self) -> Self::Owned {
+        self
+    }
+
+    fn materialize(self) -> Self::Materialized {
         self
     }
 }

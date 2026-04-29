@@ -138,6 +138,7 @@ mod view_implementations {
     {
         type AsyncOutput = Option<T>;
         type Owned = Self;
+        type Materialized = Self;
 
         const MIN_LENGTH: usize = 0;
 
@@ -196,6 +197,10 @@ mod view_implementations {
         }
 
         fn into_owned(self) -> Self::Owned {
+            self
+        }
+
+        fn materialize(self) -> Self::Materialized {
             self
         }
     }

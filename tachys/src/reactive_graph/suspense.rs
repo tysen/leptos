@@ -289,6 +289,7 @@ where
 {
     type AsyncOutput = Option<T>;
     type Owned = Self;
+    type Materialized = Self;
 
     const MIN_LENGTH: usize = T::MIN_LENGTH;
 
@@ -476,6 +477,10 @@ where
     }
 
     fn into_owned(self) -> Self::Owned {
+        self
+    }
+
+    fn materialize(self) -> Self::Materialized {
         self
     }
 }

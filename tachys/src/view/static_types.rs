@@ -168,6 +168,7 @@ where
 impl<const V: &'static str> RenderHtml for Static<V> {
     type AsyncOutput = Self;
     type Owned = Self;
+    type Materialized = Self;
 
     const MIN_LENGTH: usize = V.len();
 
@@ -232,6 +233,10 @@ impl<const V: &'static str> RenderHtml for Static<V> {
     }
 
     fn into_owned(self) -> Self::Owned {
+        self
+    }
+
+    fn materialize(self) -> Self::Materialized {
         self
     }
 }

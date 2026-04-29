@@ -74,6 +74,7 @@ where
 {
     type AsyncOutput = V::AsyncOutput;
     type Owned = V::Owned;
+    type Materialized = V::Materialized;
 
     const MIN_LENGTH: usize = V::MIN_LENGTH;
 
@@ -112,6 +113,10 @@ where
 
     fn into_owned(self) -> Self::Owned {
         self.view.into_owned()
+    }
+
+    fn materialize(self) -> Self::Materialized {
+        self.view.materialize()
     }
 }
 

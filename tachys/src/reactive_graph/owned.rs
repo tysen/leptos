@@ -93,6 +93,7 @@ where
     // TODO
     type AsyncOutput = OwnedView<T::AsyncOutput>;
     type Owned = OwnedView<T::Owned>;
+    type Materialized = OwnedView<T::Materialized>;
 
     const MIN_LENGTH: usize = T::MIN_LENGTH;
 
@@ -184,6 +185,15 @@ where
             owner: self.owner,
             view: self.view.into_owned(),
         }
+    }
+
+    fn materialize(self) -> Self::Materialized {
+        // The owner needs to be active when we materialize, because materializing
+        // may invoke a reactive closure (which needs to read context, signals, etc.
+        // from this owner).
+        let OwnedView { owner, view } = self;
+        let view = owner.with(|| view.materialize());
+        OwnedView { owner, view }
     }
 }
 

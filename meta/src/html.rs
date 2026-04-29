@@ -104,6 +104,7 @@ where
 {
     type AsyncOutput = HtmlView<At::AsyncOutput>;
     type Owned = HtmlView<At::CloneableOwned>;
+    type Materialized = HtmlView<At::CloneableOwned>;
 
     const MIN_LENGTH: usize = At::MIN_LENGTH;
 
@@ -152,6 +153,12 @@ where
     }
 
     fn into_owned(self) -> Self::Owned {
+        HtmlView {
+            attributes: self.attributes.into_cloneable_owned(),
+        }
+    }
+
+    fn materialize(self) -> Self::Materialized {
         HtmlView {
             attributes: self.attributes.into_cloneable_owned(),
         }

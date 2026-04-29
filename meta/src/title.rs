@@ -320,6 +320,7 @@ impl AddAnyAttr for TitleView {
 impl RenderHtml for TitleView {
     type AsyncOutput = Self;
     type Owned = Self;
+    type Materialized = Self;
 
     const MIN_LENGTH: usize = 0;
     const EXISTS: bool = false;
@@ -365,6 +366,10 @@ impl RenderHtml for TitleView {
     }
 
     fn into_owned(self) -> Self::Owned {
+        self
+    }
+
+    fn materialize(self) -> Self::Materialized {
         self
     }
 }
