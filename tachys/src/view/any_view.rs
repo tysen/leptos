@@ -298,11 +298,10 @@ where
             position: &PositionState,
         ) -> AnyViewState {
             crate::hydration::hyd_log_msg(&format!(
-                "ENTER AnyView::hydrate_from_server T={} T::EXISTS={}",
+                "AnyView::hydrate_from_server T={} T::EXISTS={}",
                 std::any::type_name::<T>(),
                 T::EXISTS
             ));
-            crate::hydration::hyd_depth_inc();
             let state = ErasedLocal::new(
                 value.into_inner::<T>().hydrate::<true>(cursor, position),
             );
@@ -314,11 +313,6 @@ where
             } else {
                 None
             };
-            crate::hydration::hyd_depth_dec();
-            crate::hydration::hyd_log_msg(&format!(
-                "EXIT  AnyView::hydrate_from_server T={}",
-                std::any::type_name::<T>()
-            ));
             AnyViewState {
                 type_id: TypeId::of::<T>(),
                 state,

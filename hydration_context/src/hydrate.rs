@@ -125,6 +125,10 @@ impl SharedContext for HydrateSharedContext {
 
     fn next_id(&self) -> SerializedDataId {
         let id = self.id.fetch_add(1, Ordering::Relaxed);
+        web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(&format!(
+            "[HYD] HydrateSharedContext::next_id -> {}",
+            id
+        )));
         SerializedDataId(id)
     }
 

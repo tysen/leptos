@@ -1678,6 +1678,7 @@ dependencies = [
  "serde",
  "throw_error",
  "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]

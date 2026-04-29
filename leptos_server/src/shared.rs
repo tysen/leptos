@@ -196,6 +196,10 @@ where
 
             let sc = Owner::current_shared_context();
             let id = sc.as_ref().map(|sc| sc.next_id()).unwrap_or_default();
+            ::tachys::hydration::hyd_log_msg(&format!(
+                "ID-CONSUMER SharedValue::new_with_encoding id={:?}",
+                id
+            ));
             let serialized = sc.as_ref().and_then(|sc| sc.read_data(&id));
             let hydrating =
                 sc.as_ref().map(|sc| sc.during_hydration()).unwrap_or(false);

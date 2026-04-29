@@ -115,11 +115,17 @@ impl ToAnySubscriber for SuspendSubscriber {
 
 impl<T> Suspend<T> {
     /// Creates a new suspended view.
+    #[track_caller]
     pub fn new<Fut>(fut: Fut) -> Self
     where
         Fut: IntoFuture<Output = T>,
         Fut::IntoFuture: Send + 'static,
     {
+        crate::hydration::hyd_log_msg(&format!(
+            "Suspend::new caller={} T={}",
+            std::panic::Location::caller(),
+            std::any::type_name::<T>()
+        ));
         let subscriber = SuspendSubscriber::new();
         let any_subscriber = subscriber.to_any_subscriber();
         let inner = any_subscriber
@@ -303,7 +309,16 @@ where
         // TODO wrap this with a Suspense as needed
         // currently this is just used for Routes, which creates a Suspend but never actually needs
         // it (because we don't lazy-load routes on the server)
-        if let Some(inner) = self.inner.now_or_never() {
+        let now_or_never = self.inner.now_or_never();
+        let in_suspense = use_context::<SuspenseContext>().is_some();
+        crate::hydration::hyd_log_msg(&format!(
+            "Suspend::SSR sync(to_html_with_buf) now_or_never={} in_suspense={} T={} -> {}",
+            now_or_never.is_some(),
+            in_suspense,
+            std::any::type_name::<T>(),
+            if now_or_never.is_some() { "emit value HTML" } else { "emit NOTHING" }
+        ));
+        if let Some(inner) = now_or_never {
             inner.to_html_with_buf(
                 buf,
                 position,
@@ -325,7 +340,23 @@ where
         Self: Sized,
     {
         let mut fut = Box::pin(self.inner);
-        match fut.as_mut().now_or_never() {
+        let polled = fut.as_mut().now_or_never();
+        let in_suspense = use_context::<SuspenseContext>().is_some();
+        crate::hydration::hyd_log_msg(&format!(
+            "Suspend::SSR async(to_html_async_with_buf) OOO={} now_or_never={} in_suspense={} T={} -> {}",
+            OUT_OF_ORDER,
+            polled.is_some(),
+            in_suspense,
+            std::any::type_name::<T>(),
+            if polled.is_some() {
+                "emit value HTML"
+            } else if in_suspense {
+                "emit NOTHING (parent Suspense awaits)"
+            } else {
+                "emit fallback marker + queue async"
+            }
+        ));
+        match polled {
             Some(inner) => inner.to_html_async_with_buf::<OUT_OF_ORDER>(
                 buf,
                 position,
@@ -408,13 +439,18 @@ where
         let mut fut = Box::pin(Abortable::new(inner, abort_registration));
         on_cleanup(move || abort_handle.abort());
 
+        crate::hydration::hyd_log_msg(&format!(
+            "Suspend::hydrate ABOUT TO POLL T={}",
+            std::any::type_name::<T>()
+        ));
+
         // poll the future once immediately
         // if it's already available, start in the ready state
         // otherwise, start with the fallback
         let initial = fut.as_mut().now_or_never().and_then(Result::ok);
         let initially_pending = initial.is_none();
         crate::hydration::hyd_log_msg(&format!(
-            "Suspend::hydrate initially_pending={} T={} (Some -> hydrate value, None -> ()::hydrate walks marker)",
+            "Suspend::hydrate POLLED initially_pending={} T={} (Some -> hydrate value, None -> ()::hydrate walks marker)",
             initially_pending,
             std::any::type_name::<T>()
         ));

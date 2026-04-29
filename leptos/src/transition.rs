@@ -99,6 +99,10 @@ where
                 })
                 .unwrap_or_else(|| (false, Default::default()))
         };
+        ::tachys::hydration::hyd_log_msg(&format!(
+            "Transition COMPONENT init id={:?} starts_local={}",
+            id, starts_local
+        ));
         let fallback = fallback.run();
         let children = children.into_inner()();
         let tasks = ArcRwSignal::new(SlotMap::<DefaultKey, ()>::new());

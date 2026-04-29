@@ -299,6 +299,10 @@ where
             .as_ref()
             .map(|sc| sc.next_id())
             .unwrap_or_default();
+        ::tachys::hydration::hyd_log_msg(&format!(
+            "ID-CONSUMER Resource::new id={:?}",
+            id
+        ));
 
         let initial = initial_value::<T, Ser>(&id, shared_context.as_ref());
         let is_ready = initial.is_some();

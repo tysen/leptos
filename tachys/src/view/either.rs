@@ -656,7 +656,6 @@ where
             showing_b,
             if showing_b { "hydrate B (fallback)" } else { "hydrate A (children)" }
         ));
-        crate::hydration::hyd_depth_inc();
         let a = self.a.map(|a| {
             if showing_b {
                 a.build()
@@ -671,8 +670,6 @@ where
                 b.build()
             }
         });
-        crate::hydration::hyd_depth_dec();
-        crate::hydration::hyd_log_msg("EitherKeepAlive::hydrate EXIT");
 
         EitherKeepAliveState { showing_b, a, b }
     }

@@ -389,22 +389,16 @@ where
     ) -> Self::State {
         let n = self.len();
         crate::hydration::hyd_log_msg(&format!(
-            "ENTER Vec::hydrate(len={}) position_in={:?}",
-            n,
-            position.get()
+            "Vec::hydrate(len={}) walking trailing next_placeholder",
+            n
         ));
-        crate::hydration::hyd_depth_inc();
         let states = self
             .into_iter()
             .map(|child| child.hydrate::<FROM_SERVER>(cursor, position))
             .collect();
 
-        crate::hydration::hyd_log_msg("Vec::hydrate trailing next_placeholder");
         let marker = cursor.next_placeholder(position);
         position.set(Position::NextChild);
-
-        crate::hydration::hyd_depth_dec();
-        crate::hydration::hyd_log_msg(&format!("EXIT  Vec::hydrate(len={})", n));
 
         VecState { states, marker }
     }
@@ -678,23 +672,17 @@ where
     ) -> Self::State {
         let n = self.0.len();
         crate::hydration::hyd_log_msg(&format!(
-            "ENTER StaticVec::hydrate(len={}) position_in={:?}",
-            n,
-            position.get()
+            "StaticVec::hydrate(len={}) walking trailing next_placeholder",
+            n
         ));
-        crate::hydration::hyd_depth_inc();
         let states = self
             .0
             .into_iter()
             .map(|child| child.hydrate::<FROM_SERVER>(cursor, position))
             .collect();
 
-        crate::hydration::hyd_log_msg("StaticVec::hydrate trailing next_placeholder");
         let marker = cursor.next_placeholder(position);
         position.set(Position::NextChild);
-
-        crate::hydration::hyd_depth_dec();
-        crate::hydration::hyd_log_msg(&format!("EXIT  StaticVec::hydrate(len={})", n));
 
         Self::State { states, marker }
     }

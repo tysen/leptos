@@ -104,6 +104,11 @@ impl SharedContext for SsrSharedContext {
         } else {
             self.non_hydration_id.fetch_sub(1, Ordering::Relaxed)
         };
+        eprintln!(
+            "[HYD-SSR] SsrSharedContext::next_id -> {} @ {}",
+            id,
+            std::panic::Location::caller()
+        );
         SerializedDataId(id)
     }
 
@@ -246,6 +251,7 @@ impl SharedContext for SsrSharedContext {
     }
 
     fn set_incomplete_chunk(&self, id: SerializedDataId) {
+        eprintln!("[HYD-SSR] set_incomplete_chunk({:?})", id);
         self.incomplete.lock().or_poisoned().push(id);
     }
 

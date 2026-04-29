@@ -92,6 +92,7 @@ use throw_error::ErrorHookFuture;
 /// # ;}
 /// ```
 #[component]
+#[track_caller]
 pub fn Suspense<Chil>(
     /// A function that returns a fallback that will be shown while resources are still loading.
     /// By default this is an empty view.
@@ -104,6 +105,11 @@ pub fn Suspense<Chil>(
 where
     Chil: IntoView + Send + 'static,
 {
+    let caller = std::panic::Location::caller();
+    ::tachys::hydration::hyd_log_msg(&format!(
+        "Suspense COMPONENT fn entry caller={}",
+        caller
+    ));
     let error_boundary_parent = use_context::<ErrorBoundarySuspendedChildren>();
 
     let owner = Owner::new();
@@ -116,6 +122,10 @@ where
                 })
                 .unwrap_or_else(|| (false, Default::default()))
         };
+        ::tachys::hydration::hyd_log_msg(&format!(
+            "Suspense COMPONENT init id={:?} starts_local={} caller={}",
+            id, starts_local, caller
+        ));
         let fallback = fallback.run();
         let children = children.into_inner()();
         let tasks = ArcRwSignal::new(SlotMap::<DefaultKey, ()>::new());
@@ -542,6 +552,7 @@ where
         let cursor = cursor.to_owned();
         let position = position.to_owned();
 
+        let id = self.id.clone();
         let mut children = Some(self.children);
         let mut fallback = Some(self.fallback);
         let none_pending = self.none_pending;
@@ -549,8 +560,8 @@ where
         let outer_owner = Owner::new();
 
         ::tachys::hydration::hyd_log_msg(&format!(
-            "SuspenseBoundary::hydrate ENTRY TRANSITION={}",
-            TRANSITION
+            "SuspenseBoundary::hydrate ENTRY id={:?} TRANSITION={}",
+            id, TRANSITION
         ));
 
         RenderEffect::new(move |prev| {
@@ -562,7 +573,8 @@ where
             let np = none_pending.get();
             let show_b = !np && (!TRANSITION || nth_run < 1);
             ::tachys::hydration::hyd_log_msg(&format!(
-                "SuspenseBoundary::hydrate effect run nth_run={} TRANSITION={} none_pending={} -> show_b={} ({})",
+                "SuspenseBoundary::hydrate effect run id={:?} nth_run={} TRANSITION={} none_pending={} -> show_b={} ({})",
+                id,
                 nth_run,
                 TRANSITION,
                 np,

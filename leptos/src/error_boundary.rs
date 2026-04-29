@@ -88,6 +88,10 @@ where
 {
     let sc = Owner::current_shared_context();
     let boundary_id = sc.as_ref().map(|sc| sc.next_id()).unwrap_or_default();
+    ::tachys::hydration::hyd_log_msg(&format!(
+        "ID-CONSUMER ErrorBoundary::next_id id={:?}",
+        boundary_id
+    ));
     let initial_errors =
         sc.map(|sc| sc.errors(&boundary_id)).unwrap_or_default();
 
@@ -624,10 +628,14 @@ impl ErrorBoundaryErrorHook {
 impl ErrorHook for ErrorBoundaryErrorHook {
     fn throw(&self, error: Error) -> ErrorId {
         // generate a unique ID
-        let key: ErrorId = Owner::current_shared_context()
+        let id_for_log = Owner::current_shared_context()
             .map(|sc| sc.next_id())
-            .unwrap_or_default()
-            .into();
+            .unwrap_or_default();
+        ::tachys::hydration::hyd_log_msg(&format!(
+            "ID-CONSUMER ErrorHook::throw id={:?}",
+            id_for_log
+        ));
+        let key: ErrorId = id_for_log.into();
 
         // register it with the shared context, so that it can be serialized from server to client
         // as needed

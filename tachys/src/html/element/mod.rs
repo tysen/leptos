@@ -518,24 +518,6 @@ where
             panic!("Custom elements are not supported in ViewTemplate.");
         }
 
-        let defined_at_str = {
-            #[cfg(any(debug_assertions, leptos_debuginfo))]
-            {
-                self.defined_at.to_string()
-            }
-            #[cfg(not(any(debug_assertions, leptos_debuginfo)))]
-            {
-                "{no debuginfo}".to_string()
-            }
-        };
-        crate::hydration::hyd_log_msg(&format!(
-            "ENTER HtmlElement::hydrate <{}> defined_at={} position_in={:?}",
-            E::TAG,
-            defined_at_str,
-            position.get()
-        ));
-        crate::hydration::hyd_depth_inc();
-
         // codegen optimisation:
         fn inner_1(
             cursor: &Cursor,
@@ -572,18 +554,8 @@ where
 
         // hydrate children
         let children = if !Ch::EXISTS || !E::ESCAPE_CHILDREN {
-            crate::hydration::hyd_log_msg(&format!(
-                "  <{}> has no hydratable children (Ch::EXISTS={}, ESCAPE_CHILDREN={})",
-                E::TAG,
-                Ch::EXISTS,
-                E::ESCAPE_CHILDREN
-            ));
             None
         } else {
-            crate::hydration::hyd_log_msg(&format!(
-                "  <{}> hydrating children",
-                E::TAG
-            ));
             position.set(Position::FirstChild);
             Some(self.children.hydrate::<FROM_SERVER>(cursor, position))
         };
@@ -604,12 +576,6 @@ where
             position.set(Position::NextChild);
         }
         inner_2(cursor, position, &el);
-
-        crate::hydration::hyd_depth_dec();
-        crate::hydration::hyd_log_msg(&format!(
-            "EXIT  HtmlElement::hydrate <{}>",
-            E::TAG
-        ));
 
         ElementState {
             el,
