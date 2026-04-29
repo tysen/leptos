@@ -311,12 +311,6 @@ where
                 mark_branches,
                 extra_attrs,
             );
-        } else if escape {
-            // Match the hydration path: a pending Suspend hydrates as
-            // `Option::None` -> `()::hydrate` which walks for a comment marker.
-            // Emit one here so the cursor finds it.
-            buf.push_str("<!>");
-            *position = Position::NextChild;
         }
     }
 
@@ -394,18 +388,6 @@ where
                         });
                         *position = Position::NextChild;
                     }
-                } else if escape {
-                    // Pending Suspend inside an enclosing Suspense: the parent
-                    // Suspense owns the fallback for this region, so we don't
-                    // emit any user-visible content here. But hydration of a
-                    // pending Suspend goes through `Option::None.hydrate()` ->
-                    // `()::hydrate()` -> `cursor.next_placeholder(...)`, which
-                    // expects a comment marker to walk onto. Without this the
-                    // cursor lands on the next real sibling and panics in
-                    // `failed_to_cast_marker_node`. Emit an empty placeholder
-                    // so the SSR matches what the hydrator walks for.
-                    buf.push_sync("<!>");
-                    *position = Position::NextChild;
                 }
             }
         }
