@@ -375,6 +375,7 @@ where
 {
     type AsyncOutput = HtmlElement<E, At::AsyncOutput, Ch::AsyncOutput>;
     type Owned = HtmlElement<E, At::CloneableOwned, Ch::Owned>;
+    type Materialized = HtmlElement<E, At::CloneableOwned, Ch::Materialized>;
 
     const MIN_LENGTH: usize = if E::SELF_CLOSING {
         3 // < ... />
@@ -662,6 +663,16 @@ where
             tag: self.tag,
             attributes: self.attributes.into_cloneable_owned(),
             children: self.children.into_owned(),
+        }
+    }
+
+    fn materialize(self) -> Self::Materialized {
+        HtmlElement {
+            #[cfg(any(debug_assertions, leptos_debuginfo))]
+            defined_at: self.defined_at,
+            tag: self.tag,
+            attributes: self.attributes.into_cloneable_owned(),
+            children: self.children.materialize(),
         }
     }
 }

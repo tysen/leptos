@@ -61,6 +61,7 @@ where
 {
     type AsyncOutput = Option<T::AsyncOutput>;
     type Owned = Option<T::Owned>;
+    type Materialized = Option<T::Materialized>;
 
     const MIN_LENGTH: usize = T::MIN_LENGTH;
 
@@ -156,6 +157,10 @@ where
 
     fn into_owned(self) -> Self::Owned {
         self.map(RenderHtml::into_owned)
+    }
+
+    fn materialize(self) -> Self::Materialized {
+        self.map(RenderHtml::materialize)
     }
 }
 
@@ -293,6 +298,7 @@ where
 {
     type AsyncOutput = Vec<T::AsyncOutput>;
     type Owned = Vec<T::Owned>;
+    type Materialized = Vec<T::Materialized>;
 
     const MIN_LENGTH: usize = 0;
 
@@ -422,6 +428,12 @@ where
     fn into_owned(self) -> Self::Owned {
         self.into_iter()
             .map(RenderHtml::into_owned)
+            .collect::<Vec<_>>()
+    }
+
+    fn materialize(self) -> Self::Materialized {
+        self.into_iter()
+            .map(RenderHtml::materialize)
             .collect::<Vec<_>>()
     }
 }
@@ -596,6 +608,7 @@ where
 {
     type AsyncOutput = StaticVec<T::AsyncOutput>;
     type Owned = StaticVec<T::Owned>;
+    type Materialized = StaticVec<T::Materialized>;
 
     const MIN_LENGTH: usize = 0;
 
@@ -710,6 +723,14 @@ where
             .collect::<Vec<_>>()
             .into()
     }
+
+    fn materialize(self) -> Self::Materialized {
+        self.0
+            .into_iter()
+            .map(RenderHtml::materialize)
+            .collect::<Vec<_>>()
+            .into()
+    }
 }
 
 impl<T, const N: usize> Render for [T; N]
@@ -801,6 +822,7 @@ where
 {
     type AsyncOutput = [T::AsyncOutput; N];
     type Owned = [T::Owned; N];
+    type Materialized = [T::Materialized; N];
 
     const MIN_LENGTH: usize = 0;
 
@@ -891,6 +913,14 @@ where
     fn into_owned(self) -> Self::Owned {
         self.into_iter()
             .map(RenderHtml::into_owned)
+            .collect::<Vec<_>>()
+            .try_into()
+            .unwrap_or_else(|_| unreachable!())
+    }
+
+    fn materialize(self) -> Self::Materialized {
+        self.into_iter()
+            .map(RenderHtml::materialize)
             .collect::<Vec<_>>()
             .try_into()
             .unwrap_or_else(|_| unreachable!())

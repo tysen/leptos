@@ -24,6 +24,7 @@ impl Render for () {
 impl RenderHtml for () {
     type AsyncOutput = ();
     type Owned = ();
+    type Materialized = ();
 
     const MIN_LENGTH: usize = 3;
     const EXISTS: bool = false;
@@ -61,6 +62,8 @@ impl RenderHtml for () {
     fn dry_resolve(&mut self) {}
 
     fn into_owned(self) -> Self::Owned {}
+
+    fn materialize(self) -> Self::Materialized {}
 }
 
 impl AddAnyAttr for () {
@@ -136,6 +139,7 @@ where
 {
     type AsyncOutput = (A::AsyncOutput,);
     type Owned = (A::Owned,);
+    type Materialized = (A::Materialized,);
 
     const MIN_LENGTH: usize = A::MIN_LENGTH;
     const EXISTS: bool = A::EXISTS;
@@ -206,6 +210,10 @@ where
 
     fn into_owned(self) -> Self::Owned {
         (self.0.into_owned(),)
+    }
+
+    fn materialize(self) -> Self::Materialized {
+        (self.0.materialize(),)
     }
 }
 
@@ -279,6 +287,7 @@ macro_rules! impl_view_for_tuples {
 		{
             type AsyncOutput = ($first::AsyncOutput, $($ty::AsyncOutput,)*);
             type Owned = ($first::Owned, $($ty::Owned,)*);
+            type Materialized = ($first::Materialized, $($ty::Materialized,)*);
             const EXISTS: bool = $first::EXISTS || $($ty::EXISTS || )* false;
             const MIN_LENGTH: usize = $first::MIN_LENGTH $(+ $ty::MIN_LENGTH)*;
 
@@ -359,6 +368,15 @@ macro_rules! impl_view_for_tuples {
                 (
                     $first.into_owned(),
                     $($ty.into_owned()),*
+                )
+            }
+
+            fn materialize(self) -> Self::Materialized {
+                #[allow(non_snake_case)]
+                let ($first, $($ty,)*) = self;
+                (
+                    $first.materialize(),
+                    $($ty.materialize()),*
                 )
             }
 		}

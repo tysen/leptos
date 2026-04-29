@@ -121,6 +121,7 @@ where
 {
     type AsyncOutput = Island<View::AsyncOutput>;
     type Owned = Island<View::Owned>;
+    type Materialized = Island<View::Materialized>;
 
     const MIN_LENGTH: usize = ISLAND_TAG.len() * 2
         + "<>".len()
@@ -231,6 +232,15 @@ where
             view: self.view.into_owned(),
         }
     }
+
+    fn materialize(self) -> Self::Materialized {
+        Island {
+            has_element_representation: self.has_element_representation,
+            component: self.component,
+            props_json: self.props_json,
+            view: self.view.materialize(),
+        }
+    }
 }
 
 /// The children that will be projected into an [`Island`].
@@ -312,6 +322,7 @@ where
 {
     type AsyncOutput = IslandChildren<View::AsyncOutput>;
     type Owned = IslandChildren<View::Owned>;
+    type Materialized = IslandChildren<View::Materialized>;
 
     const MIN_LENGTH: usize = ISLAND_CHILDREN_TAG.len() * 2
         + "<>".len()
@@ -422,6 +433,13 @@ where
     fn into_owned(self) -> Self::Owned {
         IslandChildren {
             view: self.view.into_owned(),
+            on_hydrate: self.on_hydrate,
+        }
+    }
+
+    fn materialize(self) -> Self::Materialized {
+        IslandChildren {
+            view: self.view.materialize(),
             on_hydrate: self.on_hydrate,
         }
     }

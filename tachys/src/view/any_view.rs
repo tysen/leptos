@@ -432,6 +432,7 @@ impl AddAnyAttr for AnyView {
 impl RenderHtml for AnyView {
     type AsyncOutput = Self;
     type Owned = Self;
+    type Materialized = Self;
 
     fn dry_resolve(&mut self) {
         #[cfg(feature = "ssr")]
@@ -641,6 +642,10 @@ impl RenderHtml for AnyView {
     fn into_owned(self) -> Self::Owned {
         self
     }
+
+    fn materialize(self) -> Self::Materialized {
+        self
+    }
 }
 
 impl Mountable for AnyViewState {
@@ -723,6 +728,7 @@ impl Render for AnyViewWithAttrs {
 impl RenderHtml for AnyViewWithAttrs {
     type AsyncOutput = Self;
     type Owned = Self;
+    type Materialized = Self;
     const MIN_LENGTH: usize = 0;
 
     fn dry_resolve(&mut self) {
@@ -818,6 +824,10 @@ impl RenderHtml for AnyViewWithAttrs {
     }
 
     fn into_owned(self) -> Self::Owned {
+        self
+    }
+
+    fn materialize(self) -> Self::Materialized {
         self
     }
 }

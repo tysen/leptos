@@ -251,6 +251,7 @@ where
 {
     type AsyncOutput = Vec<V::AsyncOutput>; // TODO
     type Owned = Self;
+    type Materialized = Self;
 
     const MIN_LENGTH: usize = 0;
 
@@ -440,6 +441,10 @@ where
     }
 
     fn into_owned(self) -> Self::Owned {
+        self
+    }
+
+    fn materialize(self) -> Self::Materialized {
         self
     }
 }

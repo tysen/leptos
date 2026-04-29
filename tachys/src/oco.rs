@@ -43,6 +43,7 @@ no_attrs!(Oco<'static, str>);
 impl RenderHtml for Oco<'static, str> {
     type AsyncOutput = Self;
     type Owned = Self;
+    type Materialized = Self;
 
     const MIN_LENGTH: usize = 0;
 
@@ -83,6 +84,10 @@ impl RenderHtml for Oco<'static, str> {
     }
 
     fn into_owned(self) -> <Self as RenderHtml>::Owned {
+        self
+    }
+
+    fn materialize(self) -> <Self as RenderHtml>::Materialized {
         self
     }
 }

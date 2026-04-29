@@ -400,6 +400,7 @@ impl AddAnyAttr for MatchedRoute {
 impl RenderHtml for MatchedRoute {
     type AsyncOutput = Self;
     type Owned = Self;
+    type Materialized = Self;
     const MIN_LENGTH: usize = 0;
 
     fn dry_resolve(&mut self) {
@@ -487,6 +488,10 @@ impl RenderHtml for MatchedRoute {
     fn into_owned(self) -> Self::Owned {
         self
     }
+
+    fn materialize(self) -> Self::Materialized {
+        self
+    }
 }
 
 impl<Loc, Defs, FalFn, Fal> FlatRoutesView<Loc, Defs, FalFn>
@@ -551,6 +556,7 @@ where
 {
     type AsyncOutput = Self;
     type Owned = Self;
+    type Materialized = Self;
 
     const MIN_LENGTH: usize = <Either<Fal, AnyView> as RenderHtml>::MIN_LENGTH;
 
@@ -828,6 +834,10 @@ where
     }
 
     fn into_owned(self) -> Self::Owned {
+        self
+    }
+
+    fn materialize(self) -> Self::Materialized {
         self
     }
 }

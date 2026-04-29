@@ -297,6 +297,7 @@ where
 {
     type AsyncOutput = ErrorBoundaryView<Chil::AsyncOutput, FalFn>;
     type Owned = Self;
+    type Materialized = Self;
 
     const MIN_LENGTH: usize = Chil::MIN_LENGTH;
 
@@ -599,6 +600,10 @@ where
     }
 
     fn into_owned(self) -> Self::Owned {
+        self
+    }
+
+    fn materialize(self) -> Self::Materialized {
         self
     }
 }

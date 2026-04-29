@@ -131,11 +131,16 @@ where
 impl<F, V> RenderHtml for F
 where
     F: ReactiveFunction<Output = V>,
-    V: RenderHtml + 'static,
+    V: RenderHtml + Send + 'static,
     V::State: 'static,
 {
     type AsyncOutput = V::AsyncOutput;
     type Owned = Self;
+    // Invoking the closure once here is what fixes the SerializedDataId drift
+    // bug: without it, dry_resolve / resolve / to_html_async_with_buf would
+    // each call the closure separately, allocating fresh hydration ids per
+    // call and breaking the SSR/hydrate id correspondence.
+    type Materialized = V;
 
     const MIN_LENGTH: usize = 0;
 
@@ -145,6 +150,10 @@ where
 
     async fn resolve(mut self) -> Self::AsyncOutput {
         self.invoke().resolve().await
+    }
+
+    fn materialize(mut self) -> V {
+        self.invoke()
     }
 
     fn html_len(&self) -> usize {
@@ -681,6 +690,7 @@ macro_rules! reactive_impl {
         {
             type AsyncOutput = Self;
             type Owned = Self;
+            type Materialized = Self;
 
             const MIN_LENGTH: usize = 0;
 
@@ -746,6 +756,10 @@ macro_rules! reactive_impl {
             }
 
             fn into_owned(self) -> Self::Owned {
+                self
+            }
+
+            fn materialize(self) -> Self::Materialized {
                 self
             }
         }

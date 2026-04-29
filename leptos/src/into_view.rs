@@ -88,6 +88,7 @@ impl<T: Render> Render for View<T> {
 impl<T: RenderHtml> RenderHtml for View<T> {
     type AsyncOutput = T::AsyncOutput;
     type Owned = View<T::Owned>;
+    type Materialized = View<T::Materialized>;
 
     const MIN_LENGTH: usize = <T as RenderHtml>::MIN_LENGTH;
     const EXISTS: bool = <T as RenderHtml>::EXISTS;
@@ -189,6 +190,14 @@ impl<T: RenderHtml> RenderHtml for View<T> {
     fn into_owned(self) -> Self::Owned {
         View {
             inner: self.inner.into_owned(),
+            #[cfg(debug_assertions)]
+            view_marker: self.view_marker,
+        }
+    }
+
+    fn materialize(self) -> Self::Materialized {
+        View {
+            inner: self.inner.materialize(),
             #[cfg(debug_assertions)]
             view_marker: self.view_marker,
         }

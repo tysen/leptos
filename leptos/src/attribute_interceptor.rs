@@ -119,6 +119,7 @@ impl<T: IntoView + 'static, A: Attribute> RenderHtml
 {
     type AsyncOutput = T::AsyncOutput;
     type Owned = AttributeInterceptorInner<T, A::CloneableOwned>;
+    type Materialized = AttributeInterceptorInner<T, A::CloneableOwned>;
 
     const MIN_LENGTH: usize = T::MIN_LENGTH;
 
@@ -166,6 +167,14 @@ impl<T: IntoView + 'static, A: Attribute> RenderHtml
     }
 
     fn into_owned(self) -> Self::Owned {
+        AttributeInterceptorInner {
+            children_builder: self.children_builder,
+            children: self.children,
+            attributes: self.attributes.into_cloneable_owned(),
+        }
+    }
+
+    fn materialize(self) -> Self::Materialized {
         AttributeInterceptorInner {
             children_builder: self.children_builder,
             children: self.children,
