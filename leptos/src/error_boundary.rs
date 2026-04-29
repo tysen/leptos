@@ -297,7 +297,13 @@ where
 {
     type AsyncOutput = ErrorBoundaryView<Chil::AsyncOutput, FalFn>;
     type Owned = Self;
-    type Materialized = Self;
+    // Recursively materialize children: if `self.children` is a reactive
+    // closure (a `move ||` block from the user's view!), this propagates the
+    // materialization down so the closure is invoked exactly once. Without
+    // recursing here, the closure would still be invoked once for
+    // `dry_resolve` and again for `resolve` (since both forward through
+    // ErrorBoundaryView to its children), causing SerializedDataId drift.
+    type Materialized = ErrorBoundaryView<Chil::Materialized, FalFn>;
 
     const MIN_LENGTH: usize = Chil::MIN_LENGTH;
 
@@ -604,7 +610,15 @@ where
     }
 
     fn materialize(self) -> Self::Materialized {
-        self
+        ErrorBoundaryView {
+            hook: self.hook,
+            boundary_id: self.boundary_id,
+            errors_empty: self.errors_empty,
+            children: self.children.materialize(),
+            fallback: self.fallback,
+            errors: self.errors,
+            suspended_children: self.suspended_children,
+        }
     }
 }
 
