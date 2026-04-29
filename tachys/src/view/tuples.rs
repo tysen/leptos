@@ -47,6 +47,10 @@ impl RenderHtml for () {
         cursor: &Cursor,
         position: &PositionState,
     ) -> Self::State {
+        crate::hydration::hyd_log_msg(&format!(
+            "()::hydrate (will walk for marker) position_in={:?}",
+            position.get()
+        ));
         let marker = cursor.next_placeholder(position);
         position.set(Position::NextChild);
         marker

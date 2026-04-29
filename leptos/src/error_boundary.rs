@@ -458,6 +458,7 @@ where
         cursor: &Cursor,
         position: &PositionState,
     ) -> Self::State {
+        ::tachys::hydration::hyd_log_msg("ErrorBoundary::hydrate ENTRY");
         let mut children = Some(self.children);
         let hook = Arc::clone(&self.hook);
         let cursor = cursor.to_owned();
@@ -492,8 +493,14 @@ where
                     }
                     state
                 } else {
+                    let errors_empty = self.errors_empty.get();
+                    ::tachys::hydration::hyd_log_msg(&format!(
+                        "ErrorBoundary effect run errors_empty={} ({})",
+                        errors_empty,
+                        if errors_empty { "CHILDREN" } else { "FALLBACK" }
+                    ));
                     let children = children.take().unwrap();
-                    let (children, fallback) = if self.errors_empty.get() {
+                    let (children, fallback) = if errors_empty {
                         (
                             children.hydrate::<FROM_SERVER>(&cursor, &position),
                             None,

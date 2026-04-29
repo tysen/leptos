@@ -548,13 +548,27 @@ where
         let mut nth_run = 0;
         let outer_owner = Owner::new();
 
+        ::tachys::hydration::hyd_log_msg(&format!(
+            "SuspenseBoundary::hydrate ENTRY TRANSITION={}",
+            TRANSITION
+        ));
+
         RenderEffect::new(move |prev| {
             // show the fallback if
             // 1) there are pending futures, and
             // 2) we are either in a Suspense (not Transition), or it's the first fallback
             //    (because we initially render the children to register Futures, the "first
             //    fallback" is probably the 2nd run
-            let show_b = !none_pending.get() && (!TRANSITION || nth_run < 1);
+            let np = none_pending.get();
+            let show_b = !np && (!TRANSITION || nth_run < 1);
+            ::tachys::hydration::hyd_log_msg(&format!(
+                "SuspenseBoundary::hydrate effect run nth_run={} TRANSITION={} none_pending={} -> show_b={} ({})",
+                nth_run,
+                TRANSITION,
+                np,
+                show_b,
+                if show_b { "FALLBACK" } else { "CHILDREN" }
+            ));
             nth_run += 1;
             let this = OwnedView::new_with_owner(
                 EitherKeepAlive {

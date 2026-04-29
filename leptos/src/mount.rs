@@ -25,7 +25,13 @@ where
     F: FnOnce() -> N + 'static,
     N: IntoView,
 {
+    ::tachys::hydration::hyd_log_msg(
+        "==================== HYDRATION START (hydrate_body) ====================",
+    );
     let owner = hydrate_from(body(), f);
+    ::tachys::hydration::hyd_log_msg(
+        "==================== HYDRATION END   (hydrate_body) ====================",
+    );
     owner.forget();
 }
 

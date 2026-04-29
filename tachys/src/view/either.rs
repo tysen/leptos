@@ -413,9 +413,11 @@ where
     ) -> Self::State {
         match self {
             Either::Left(left) => {
+                crate::hydration::hyd_log_msg("Either::hydrate Left");
                 Either::Left(left.hydrate::<FROM_SERVER>(cursor, position))
             }
             Either::Right(right) => {
+                crate::hydration::hyd_log_msg("Either::hydrate Right");
                 Either::Right(right.hydrate::<FROM_SERVER>(cursor, position))
             }
         }
@@ -649,6 +651,12 @@ where
         position: &PositionState,
     ) -> Self::State {
         let showing_b = self.show_b;
+        crate::hydration::hyd_log_msg(&format!(
+            "EitherKeepAlive::hydrate showing_b={} ({})",
+            showing_b,
+            if showing_b { "hydrate B (fallback)" } else { "hydrate A (children)" }
+        ));
+        crate::hydration::hyd_depth_inc();
         let a = self.a.map(|a| {
             if showing_b {
                 a.build()
@@ -663,6 +671,8 @@ where
                 b.build()
             }
         });
+        crate::hydration::hyd_depth_dec();
+        crate::hydration::hyd_log_msg("EitherKeepAlive::hydrate EXIT");
 
         EitherKeepAliveState { showing_b, a, b }
     }

@@ -413,6 +413,11 @@ where
         // otherwise, start with the fallback
         let initial = fut.as_mut().now_or_never().and_then(Result::ok);
         let initially_pending = initial.is_none();
+        crate::hydration::hyd_log_msg(&format!(
+            "Suspend::hydrate initially_pending={} T={} (Some -> hydrate value, None -> ()::hydrate walks marker)",
+            initially_pending,
+            std::any::type_name::<T>()
+        ));
         let inner = Rc::new(RefCell::new(
             initial.hydrate::<FROM_SERVER>(cursor, position),
         ));
